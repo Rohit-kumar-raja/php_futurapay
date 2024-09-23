@@ -1,0 +1,17 @@
+{
+    "name": "futurapay/sdk",
+    "description": "using this sdk you can integrate the payment gateway to any platform",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Futurapay\\Sdk\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "rohit kumar",
+            "email": "rohitk.techexactly@gmail.com"
+        }
+    ],
+    "require": {}
+}
