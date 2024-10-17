@@ -1,39 +1,23 @@
 <?php
-// Merchant key (the one you provided)
-$merchantKey = '66f2f9f14e481';
+function decryptData($encrypted_data, $key) {
+    // Base64 decode the encrypted data
+    $data = base64_decode($encrypted_data);
+    
+    // Extract the IV (first 16 bytes) and the encrypted message
+    $iv = substr($data, 0, 16);
+    $encrypted_bytes = substr($data, 16);
+    
+    // Decrypt using AES-256-CBC with the given key and IV
+    $decrypted = openssl_decrypt($encrypted_bytes, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+    
+    // Remove padding if necessary
+    $padding_length = ord(substr($decrypted, -1));
+    return substr($decrypted, 0, -$padding_length);
+}
 
-// Generate a 32-character key using SHA-256 hashing
-$hashedMerchantKey = hash('sha256', $merchantKey, true);
-print($hashedMerchantKey);
-
-// Encryption and decryption method
-$cipherMethod = 'AES-256-CBC';
-
-// Data to encrypt
-$data = "Sensitive data to be encrypted";
-
-// Generate an initialization vector (IV) of the correct length
-$ivLength = openssl_cipher_iv_length($cipherMethod);
-$iv = openssl_random_pseudo_bytes($ivLength);
-
-// Encrypt the data
-$encryptedData = openssl_encrypt($data, $cipherMethod, $hashedMerchantKey, 0, $iv);
-
-// To safely transmit/store the encrypted data, you can encode it in base64
-$encryptedDataBase64 = base64_encode($encryptedData);
-$ivBase64 = base64_encode($iv);
-
-echo "Encrypted Data: " . $encryptedDataBase64 . "\n";
-echo "IV: " . $ivBase64 . "\n";
-
-// ---------------- Decryption ----------------
-
-// Base64 decode the IV and encrypted data before decryption
-$iv = base64_decode($ivBase64);
-$encryptedData = base64_decode($encryptedDataBase64);
-
-// Decrypt the data
-$decryptedData = openssl_decrypt($encryptedData, $cipherMethod, $hashedMerchantKey, 0, $iv);
-
-echo "Decrypted Data: " . $decryptedData . "\n";
+// Example usage
+$encrypted_data = "JS2W9X0eHUKi1iQycBRnIMdokpO1f5AZUPSXHJU8edo=";  // Replace with your encrypted data
+$key = "your_secret_key_32_bytes";                    // Must be exactly 32 bytes for AES-256
+$decrypted_text = decryptData($encrypted_data, $key);
+echo $decrypted_text;
 ?>

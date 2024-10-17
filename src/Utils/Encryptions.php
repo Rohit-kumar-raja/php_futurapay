@@ -12,11 +12,11 @@ class Encryptions
         string $site_id,
         array $payload
     ) {
-        $key = $merchant_key . $api_key . $site_id;
+        $key = md5($merchant_key . $api_key . $site_id);
 
         // Generate a 32-character key using SHA-256 hashing
-        $hashedMerchantKey = hash('sha256', $key, true);
-
+        // $hashedMerchantKey = hash('sha256', $key, true);
+  
         // Encryption and decryption method
         $cipherMethod = 'AES-256-CBC';
 
@@ -28,7 +28,7 @@ class Encryptions
         $iv = openssl_random_pseudo_bytes($ivLength);
 
         // Encrypt the data
-        $encryptedData = openssl_encrypt($data, $cipherMethod, $hashedMerchantKey, 0, $iv);
+        $encryptedData = openssl_encrypt($data, $cipherMethod, $key, 0, $iv);
 
         // To safely transmit/store the encrypted data, you can encode it in base64
         $encryptedDataBase64 = base64_encode($encryptedData);
