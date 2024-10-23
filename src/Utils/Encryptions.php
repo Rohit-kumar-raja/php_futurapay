@@ -14,29 +14,37 @@ class Encryptions
     ) {
         $key = md5($merchant_key . $api_key . $site_id);
 
-        // Generate a 32-character key using SHA-256 hashing
-        // $hashedMerchantKey = hash('sha256', $key, true);
-  
-        // Encryption and decryption method
-        $cipherMethod = 'AES-256-CBC';
-
-        // Data to encrypt
         $data = json_encode($payload);
+        $encryptedDataBase64 = self::encrypt_data($data, $key);
+        print_r(base64_encode($api_key)."\n\n");
+        print_r($encryptedDataBase64);
+        exit;
 
-        // Generate an initialization vector (IV) of the correct length
-        $ivLength = openssl_cipher_iv_length($cipherMethod);
-        $iv = openssl_random_pseudo_bytes($ivLength);
-
-        // Encrypt the data
-        $encryptedData = openssl_encrypt($data, $cipherMethod, $key, 0, $iv);
-
-        // To safely transmit/store the encrypted data, you can encode it in base64
-        $encryptedDataBase64 = base64_encode($encryptedData);
-        $ivBase64 = base64_encode($iv);
         return  array(
             "data" => $encryptedDataBase64,
-            "iv" => $ivBase64,
             'key' => base64_encode($api_key)
         );
+    }
+
+    public static function encrypt_data($data, $key)
+    {
+        // Ensure the key is exactly 32 bytes (padding if necessary)
+        $key = str_pad($key, 32, "\0");
+
+        // Generate a random 16-byte IV
+        $iv = openssl_random_pseudo_bytes(16);
+
+        // Pad the data with PKCS7 padding
+        $block_size = 16;
+        $pad_length = $block_size - (strlen($data) % $block_size);
+        $data .= str_repeat(chr($pad_length), $pad_length);
+
+        // Encrypt the data using AES-256-CBC
+        $encrypted_data = openssl_encrypt($data, 'aes-256-cbc', $key, OPENSSL_RAW_DATA, $iv);
+
+        // Encode the IV and encrypted data as base64
+        $encrypted_data_base64 = base64_encode($iv . $encrypted_data);
+
+        return $encrypted_data_base64;
     }
 }
