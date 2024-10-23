@@ -16,10 +16,6 @@ class Encryptions
 
         $data = json_encode($payload);
         $encryptedDataBase64 = self::encrypt_data($data, $key);
-        print_r(base64_encode($api_key)."\n\n");
-        print_r($encryptedDataBase64);
-        exit;
-
         return  array(
             "data" => $encryptedDataBase64,
             'key' => base64_encode($api_key)
