@@ -13,7 +13,8 @@ class FuturaPay implements GatewayInterface
     public function __construct(
         private string $merchantKey,
         private string $apiKey,
-        private string|int $siteId
+        private string|int $siteId,
+        private string $env = "sandbox"
     ) {}
 
     public function initialize(array $paymentPayload)
@@ -26,14 +27,18 @@ class FuturaPay implements GatewayInterface
         $paymentPayload['api_key'] = $this->apiKey;
         $paymentPayload['site_id'] = $this->siteId;
         $encryptedPayload = Encryptions::make($this->merchantKey, $this->apiKey, $this->siteId, (array)$paymentPayload);
-       
-        $queryString = http_build_query($encryptedPayload);
 
-        header("Location: " . PaymentURL::LIVE_URL->value . $queryString);
+        $queryString = http_build_query($encryptedPayload);
+        if ($this->env == "live") {
+            header("Location: " . PaymentURL::LIVE_URL->value . $queryString);
+        } else {
+            header("Location: " . PaymentURL::STAGE_URL->value . $queryString);
+        }
     }
 
 
-    public function getPayment(string $hashtoken) {
+    public function getPayment(string $hashtoken)
+    {
         return true;
     }
 
