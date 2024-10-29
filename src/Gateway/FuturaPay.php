@@ -10,12 +10,25 @@ class FuturaPay implements GatewayInterface
 {
     // Implement the methods required by the GatewayInterface
 
+    private string $environment = "sandbox";
+    private string $paymentType="deposit";
+
     public function __construct(
         private string $merchantKey,
         private string $apiKey,
         private string|int $siteId,
-        private string $env = "sandbox"
     ) {}
+
+
+    public function setEnv(string $environment)
+    {
+        $this->environment = $environment;
+    }
+    public function setType(string $paymentType)
+    {
+        $this->paymentType = $paymentType;
+    }
+
 
     public function initialize(array $paymentPayload)
     {
@@ -27,14 +40,32 @@ class FuturaPay implements GatewayInterface
         $paymentPayload['api_key'] = $this->apiKey;
         $paymentPayload['site_id'] = $this->siteId;
         $encryptedPayload = Encryptions::make($this->merchantKey, $this->apiKey, $this->siteId, (array)$paymentPayload);
+        $paymentURl = $this->getPaymentUrl();
 
         $queryString = http_build_query($encryptedPayload);
-        if ($this->env == "live") {
-            header("Location: " . PaymentURL::LIVE_URL->value . $queryString);
-        } else {
-            header("Location: " . PaymentURL::STAGE_URL->value . $queryString);
-        }
+
+            header("Location: " . $paymentURl . $queryString);
+       
     }
+
+    function getPaymentUrl() {
+        $url = '';
+    
+        if ($this->environment == "live") {
+            $url = PaymentURL::LIVE_DEPOSIT_URL->value;
+            if ($this->paymentType == "withdraw") {
+                $url = PaymentURL::LIVE_WITHDRAWAL_URL->value;
+            }
+        } else {
+            $url = PaymentURL::STAGE_DEPOSIT_URL->value;
+            if ($this->paymentType == "withdraw") {
+                $url = PaymentURL::STAGE_WITHDRAWAL_URL->value;
+            }
+        }
+    
+        return $url;
+    }
+    
 
 
     public function getPayment(string $hashtoken)
